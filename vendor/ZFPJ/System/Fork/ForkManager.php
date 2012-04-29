@@ -153,21 +153,28 @@ class ForkManager
             throw new Exception\RuntimeException('manager is already started');
         }
         $this->isStarted = true;
-        $this->_createChildren($this->numChildren);
+        $this->_createChildren();
     }
     
     /**
      * Children construction
      * @param int $num 
      */
-    protected function _createChildren($num)
+    protected function _createChildren()
     {   
-        for ($i = 0; $i < $num; $i++) {
+        if($this->shareResult) {
+            $max = $this->getContainer()->max();
+            if($max<$this->numChildren) {
+                throw new Exception\RuntimeException('max creation child is ' . $max . ', increase container memory size to fork more child');
+            }
+        }
+        
+        for ($i = 0; $i < $this->numChildren; $i++) {
             
             $pid = pcntl_fork();
             
             if($pid == -1) {
-                throw new RuntimeException('fork error in the children create');
+                throw new Exception\RuntimeException('fork error in the children create');
             }
             else if($pid == 0) {
                 $this->uid = $i+1;
@@ -183,6 +190,7 @@ class ForkManager
         if($this->isForkParent()) {
             $this->registerTimeout();
             $this->uid = 0;
+            $this->pid = getmypid();
             declare(ticks = 1);
             pcntl_signal(SIGINT, array($this, 'handler'));
         }
@@ -251,6 +259,7 @@ class ForkManager
         }
         $this->callback = $callback;
         $this->callbackParam = $params;
+        return $this;
     }
     
     /**
@@ -268,6 +277,7 @@ class ForkManager
         }
         $this->callbackChildren[$num] = $callback;
         $this->callbackParamChildren[$num] = $params;
+        return $this;
     }
     
     /**
@@ -320,15 +330,16 @@ class ForkManager
      */
     public function getSharedResults()
     {
+        if(!$this->shareResult) {
+            return false;
+        }
+        if(!$this->isStarted) {
+            return false;
+        }
         if(!$this->isFinished) {
             trigger_error('children process was not interrupted', E_USER_NOTICE);
             return false;
         }
-        
-        if(!$this->shareResult) {
-            return false;
-        }
-        
         $resultsContainer = $this->getDefaultResultsContainer();
         $results = new $resultsContainer();
         
@@ -352,14 +363,35 @@ class ForkManager
     {
         $status = array();
         foreach($this->handlers as $uid => $handler) {
-            pcntl_waitpid($handler, $statut);
+            pcntl_waitpid($handler, $statut, WUNTRACED);
             $status[$uid] = $statut;
             if(intval($statut) !== 9 && intval($statut) != 0) {
                 trigger_error('pid killed "' . $handler . '" has statut ' . $statut, E_USER_NOTICE);
             }
         }
+        $this->getContainer()->close();
         $this->isFinished = true;
         return $status;
+    }
+    
+    /**
+     * Run again
+     */
+    public function rewind()
+    {
+        if(!$this->isFinished) {
+            throw new Exception\RuntimeException('fork must be finished to rewind and replay');
+        }
+        
+        pcntl_alarm(0);
+        $this->getContainer()->close();
+        $this->container = null;
+        $this->handlers = array();
+        $this->timeout = null;
+        $this->isStopped = false;
+        $this->isStarted = false;
+        $this->isFinished = false;
+        return $this;
     }
     
     /**
@@ -409,6 +441,9 @@ class ForkManager
      */
     public function setShareResult($b)
     {
+        if($this->isStarted) {
+            throw new Exception\RuntimeException('invalid timeout value');
+        }
         $this->shareResult = $b;
         return $this;
     }

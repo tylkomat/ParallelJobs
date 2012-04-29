@@ -5,6 +5,12 @@ namespace ZFPJ\System\Fork\Storage;
 class Segment implements StorageInterface
 {
     /**
+     * identifier
+     * @var string
+     */
+    protected $identifier;
+    
+    /**
      *
      * @var mixed 
      */
@@ -14,7 +20,7 @@ class Segment implements StorageInterface
      * Bloc size
      * @var int 
      */
-    protected $segmentSize = 64;
+    protected $segmentSize = 256;
     
     /**
      * Bloc size
@@ -28,7 +34,15 @@ class Segment implements StorageInterface
      */
     public function __construct($identifier = 'Z')
     {
-        $this->memory = shmop_open(ftok(__FILE__, $identifier), "c", 0644, $this->segmentSize);
+        $this->identifier = $identifier;
+    }
+    
+    /**
+     * Memory alloc
+     */
+    public function alloc()
+    {
+        $this->memory = shmop_open(ftok(__FILE__, $this->identifier), "c", 0644, $this->segmentSize);
     }
     
     /**
@@ -37,6 +51,9 @@ class Segment implements StorageInterface
      */
     public function read($uid)
     {   
+        if(!$this->memory) {
+            $this->alloc();
+        }
         $str = shmop_read($this->memory, $uid*$this->blocSize, $this->blocSize);
         return trim($str);
     }
@@ -47,6 +64,9 @@ class Segment implements StorageInterface
      */
     public function write($uid, $str)
     {   
+        if(!$this->memory) {
+            $this->alloc();
+        }
         $str = str_pad($str, $this->blocSize);
         return shmop_write($this->memory, $str, $uid*$this->blocSize);
     }
@@ -57,7 +77,19 @@ class Segment implements StorageInterface
      */
     public function close()
     {   
-        return shmop_close($this->memory);
+        if(!$this->memory) {
+            return;
+        }
+        shmop_close($this->memory);
+        $this->memory = null;
+    }
+    
+    /**
+     * Get max bloc allow
+     */
+    public function max()
+    {
+        return floor($this->segmentSize/$this->blocSize);
     }
     
     /**

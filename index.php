@@ -10,10 +10,9 @@ $jobObject = new Job();
 $manager = new \ZFPJ\System\Fork\ForkManager();
 $manager->setShareResult(true);
 $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
-$manager->createChildren(2);
+$manager->createChildren(1);
 $manager->wait();
 $results = $manager->getSharedResults();
-$manager->getContainer()->close();
 
 echo $results->getChild(1)->getResult();
 

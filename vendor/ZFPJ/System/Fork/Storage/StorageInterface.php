@@ -21,6 +21,12 @@ interface StorageInterface
      * @param int
      */
     public function close();
+    
+    /**
+     * Get max bloc allow
+     * @return int
+     */
+    public function max();
 }
 
 ?>
