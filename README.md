@@ -1,7 +1,7 @@
 ZF2-Parallel
 ============
 
-Version 0.9 Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
+Version 1.0beta Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
 
 Introduction
 ------------
@@ -116,7 +116,7 @@ Run in command line :
 
     php index.php // display "0"
 
-4) Exemple with stop children :
+5) Exemple with stop children :
 
     $jobObject = new Job();
     $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));

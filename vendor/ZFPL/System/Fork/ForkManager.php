@@ -297,7 +297,12 @@ class ForkManager
      */
     public function broadcast($signal)
     {
-        posix_kill(0, $signal);
+        if($signal == SIGINT || $signal == SIGKILL ) {
+            $this->isStopped = true;
+        }
+        foreach($this->handlers as $handler) {
+           posix_kill($handler, $signal);
+        }
     }
     
     /**
@@ -317,6 +322,10 @@ class ForkManager
     {
         if(!$this->isFinished) {
             trigger_error('children process was not interrupted', E_USER_NOTICE);
+            return false;
+        }
+        
+        if(!$this->shareResult) {
             return false;
         }
         
