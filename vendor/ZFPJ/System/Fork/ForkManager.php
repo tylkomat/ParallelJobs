@@ -369,6 +369,7 @@ class ForkManager
                 trigger_error('pid killed "' . $handler . '" has statut ' . $statut, E_USER_NOTICE);
             }
         }
+        pcntl_alarm(0);
         $this->getContainer()->close();
         $this->isFinished = true;
         return $status;
