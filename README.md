@@ -1,8 +1,17 @@
 ZF2-Parallel
 ============
 
+Version 0.9 Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
+
+Introduction
+------------
+
 ZF2 parallel provide a fork manager.
 Fork manager can create children, run specific jobs and share result.
+
+
+Fork manager usage
+------------
 
 Class Job exemple :
 
@@ -57,10 +66,12 @@ Run in command line :
     $manager->getContainer()->close();
 
     echo $results->getChild(1)->getResult();
+    echo ", ";
+    echo $results->getChild(2)->getResult();
     
 Run in command line :
 
-    php index.php // display "ko"
+    php index.php // display "ko, ok"
 
 3) Exemple with manage start :
 
@@ -80,10 +91,12 @@ Run in command line :
     $manager->getContainer()->close();
 
     echo $results->getChild(1)->getResult();
+    echo ", ";
+    echo $results->getChild(2)->getResult();
 
 Run in command line :
 
-    php index.php // display "ko"
+    php index.php // display "ko, ok"
 
 4) Exemple with timeout and unshare :
 
