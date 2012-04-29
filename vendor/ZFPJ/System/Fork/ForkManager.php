@@ -1,9 +1,9 @@
 <?php
 
-namespace ZFPL\System\Fork;
+namespace ZFPJ\System\Fork;
 
-use ZFPL\System\Fork\Storage\Segment,
-    ZFPL\System\Fork\Storage\StorageInterface,
+use ZFPJ\System\Fork\Storage\Segment,
+    ZFPJ\System\Fork\Storage\StorageInterface,
     Zend\Stdlib\CallbackHandler;
 
 class ForkManager
@@ -108,13 +108,13 @@ class ForkManager
      * Default results container
      * @var string
      */
-    protected $defaultResultsContainer = 'ZFPL\System\Fork\Storage\Results';
+    protected $defaultResultsContainer = 'ZFPJ\System\Fork\Storage\Results';
     
     /**
      * Default result container
      * @var string
      */
-    protected $defaultResultContainer = 'ZFPL\System\Fork\Storage\Result\Result';
+    protected $defaultResultContainer = 'ZFPJ\System\Fork\Storage\Result\Result';
     
     /**
      * Manager instance

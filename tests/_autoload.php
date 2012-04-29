@@ -6,7 +6,7 @@ function ZendTest_Autoloader($class)
 {
     $class = ltrim($class, '\\');
 
-    if (!preg_match('#^(Zend(Test)?|ZFPL(Test)?|PHPUnit)(\\\\|_)#', $class)) {
+    if (!preg_match('#^(Zend(Test)?|ZFPJ(Test)?|PHPUnit)(\\\\|_)#', $class)) {
         return false;
     }
 
@@ -18,17 +18,17 @@ function ZendTest_Autoloader($class)
         case 'Zend':
             $file = dirname(__DIR__) . '/vendor/ZendFramework/library/Zend/';
             break;
-        case 'ZFPL':
-            $file = dirname(__DIR__) . '/vendor/ZFPL/';
+        case 'ZFPJ':
+            $file = dirname(__DIR__) . '/vendor/ZFPJ/';
             break;
         case 'ZendTest':
             // temporary fix for ZendTest namespace until we can migrate files 
             // into ZendTest dir
             $file = __DIR__ . '/Zend/';
-        case 'ZFPLTest\Module':
+        case 'ZFPJTest\Module':
             // temporary fix for ZendTest namespace until we can migrate files 
             // into ZendTest dir
-            $file = __DIR__ . '/ZFPL/';
+            $file = __DIR__ . '/ZFPJ/';
             break;
         default:
             $file = false;
@@ -49,8 +49,8 @@ function ZendTest_Autoloader($class)
         case 'Zend':
             $file = dirname(__DIR__) . '/vendor/ZendFramework/library/Zend/';
             break;
-        case 'ZFPL':
-            $file = dirname(__DIR__) . '/vendor/ZFPL/';
+        case 'ZFPJ':
+            $file = dirname(__DIR__) . '/vendor/ZFPJ/';
             break;
         default:
             return false;

@@ -1,10 +1,10 @@
 <?php
 
-namespace ZFPLTest\System\Fork;
+namespace ZFPJTest\System\Fork;
 
 use PHPUnit_Framework_TestCase as TestCase,
     Zend\Stdlib\CallbackHandler,
-    ZFPL\System\Fork\ForkManager;
+    ZFPJ\System\Fork\ForkManager;
 
 class ManagerTest extends TestCase
 {
@@ -40,7 +40,7 @@ class ManagerTest extends TestCase
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-        $manager = new \ZFPL\System\Fork\ForkManager();
+        $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->setShareResult(true);
         $manager->doTheJob($job, 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
@@ -57,7 +57,7 @@ class ManagerTest extends TestCase
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-        $manager = new \ZFPL\System\Fork\ForkManager();
+        $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->setShareResult(true);
         $manager->setAutoStart(false);
         $manager->doTheJob($job, 'value');
@@ -73,11 +73,11 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobBadStart()
     {
-        $this->setExpectedException('ZFPL\System\Fork\Exception\RuntimeException');
+        $this->setExpectedException('ZFPJ\System\Fork\Exception\RuntimeException');
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-        $manager = new \ZFPL\System\Fork\ForkManager();
+        $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->doTheJob($job, 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
         $manager->createChildren(2);
@@ -89,7 +89,7 @@ class ManagerTest extends TestCase
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-        $manager = new \ZFPL\System\Fork\ForkManager();
+        $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->doTheJob($job, 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
         $manager->timeout(1);
@@ -103,7 +103,7 @@ class ManagerTest extends TestCase
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-        $manager = new \ZFPL\System\Fork\ForkManager();
+        $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->doTheJob($job, 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
         $manager->timeout(30);
@@ -117,7 +117,7 @@ class ManagerTest extends TestCase
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-        $manager = new \ZFPL\System\Fork\ForkManager();
+        $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->doTheJob($job, 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
         $manager->createChildren(2);
@@ -130,7 +130,7 @@ class ManagerTest extends TestCase
         $this->mockHandler();
         $jobObject = new Job();
 
-        $manager = new \ZFPL\System\Fork\ForkManager();
+        $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
         $manager->createChildren(2);
@@ -144,7 +144,7 @@ class ManagerTest extends TestCase
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-        $manager = new \ZFPL\System\Fork\ForkManager();
+        $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->doTheJob(array($jobObject, 'doOtherSomething'), 'value');
         $manager->broadcast(SIGINT);
         $this->assertEquals(true, $manager->isStopped());

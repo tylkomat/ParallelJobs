@@ -35,11 +35,10 @@ Class Job exemple :
 1) Exemple with two process for a simple job :
 
     $jobObject = new Job();
-    $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
-
-    $manager = new \ZFPL\System\Fork\ForkManager();
+    
+    $manager = new \ZFPJ\System\Fork\ForkManager();
     $manager->setShareResult(true);
-    $manager->doTheJob($job, 'value');
+    $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
     $manager->createChildren(2);
     $manager->wait();
     $results = $manager->getSharedResults();
@@ -56,7 +55,7 @@ Run in command line :
     $jobObject = new Job();
     $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-    $manager = new \ZFPL\System\Fork\ForkManager();
+    $manager = new \ZFPJ\System\Fork\ForkManager();
     $manager->setShareResult(true);
     $manager->doTheJob($job, 'value');
     $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
@@ -78,7 +77,7 @@ Run in command line :
     $jobObject = new Job();
     $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-    $manager = new \ZFPL\System\Fork\ForkManager();
+    $manager = new \ZFPJ\System\Fork\ForkManager();
     $manager->setShareResult(true);
     $manager->setAutoStart(false);
     $manager->doTheJob($job, 'value');
@@ -103,7 +102,7 @@ Run in command line :
     $jobObject = new Job();
     $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-    $manager = new \ZFPL\System\Fork\ForkManager();
+    $manager = new \ZFPJ\System\Fork\ForkManager();
     $manager->doTheJob($job, 'value');
     $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
     $manager->timeout(60);
@@ -121,7 +120,7 @@ Run in command line :
     $jobObject = new Job();
     $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-    $manager = new \ZFPL\System\Fork\ForkManager();
+    $manager = new \ZFPJ\System\Fork\ForkManager();
     $manager->doTheJob($job, 'value');
     $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
     $manager->timeout(60);

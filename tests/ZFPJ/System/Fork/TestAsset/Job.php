@@ -1,6 +1,6 @@
 <?php
 
-namespace ZFPLTest\System\Fork;
+namespace ZFPJTest\System\Fork;
 
 class Job
 {

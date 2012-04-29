@@ -6,23 +6,16 @@ Zend\Loader\AutoloaderFactory::factory();
 Zend\Loader\AutoloaderFactory::factory(array('Zend\Loader\ClassMapAutoloader' => array(include 'config/autoload_classmap.php')));
 
 $jobObject = new Job();
-$job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-$manager = new \ZFPL\System\Fork\ForkManager();
+$manager = new \ZFPJ\System\Fork\ForkManager();
 $manager->setShareResult(true);
-$manager->setAutoStart(false);
-$manager->doTheJob($job, 'value');
-$manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
+$manager->doTheJob(array($jobObject, 'doSomething'), 'value');
 $manager->createChildren(2);
-// do multiple tasks
-$manager->start();
 $manager->wait();
 $results = $manager->getSharedResults();
 $manager->getContainer()->close();
 
 echo $results->getChild(1)->getResult();
-echo ", ";
-echo $results->getChild(2)->getResult();
 
 
 class Job

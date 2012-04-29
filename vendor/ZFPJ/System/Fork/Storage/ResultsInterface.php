@@ -1,6 +1,6 @@
 <?php
 
-namespace ZFPL\System\Fork\Storage;
+namespace ZFPJ\System\Fork\Storage;
 
 interface ResultsInterface
 {

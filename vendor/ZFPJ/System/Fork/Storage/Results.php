@@ -1,8 +1,8 @@
 <?php
 
-namespace ZFPL\System\Fork\Storage;
+namespace ZFPJ\System\Fork\Storage;
 
-use ZFPL\System\Fork\Exception\RuntimeException;
+use ZFPJ\System\Fork\Exception\RuntimeException;
 
 class Results implements ResultsInterface
 {
