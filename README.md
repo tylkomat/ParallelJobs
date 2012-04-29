@@ -32,14 +32,14 @@ Class Job exemple :
         }
     }
 
-1) Exemple with two process for a simple job :
+1) Exemple with one process for a simple job :
 
     $jobObject = new Job();
     
     $manager = new \ZFPJ\System\Fork\ForkManager();
     $manager->setShareResult(true);
     $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
-    $manager->createChildren(2);
+    $manager->createChildren(1);
     $manager->wait();
     $results = $manager->getSharedResults();
     $manager->getContainer()->close();
@@ -50,7 +50,7 @@ Run in command line :
 
     php index.php // display "ok"
 
-2) Exemple with three process for multiple job :
+2) Exemple with two process for multiple job :
 
     $jobObject = new Job();
     $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
