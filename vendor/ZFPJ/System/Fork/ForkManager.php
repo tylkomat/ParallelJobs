@@ -1,5 +1,10 @@
 <?php
 
+/*
+ * This file is part of the ZFPJ package.
+ * @copyright Copyright (c) 2012 Blanchon Vincent - France (http://developpeur-zend-framework.fr - blanchon.vincent@gmail.com)
+ */
+
 namespace ZFPJ\System\Fork;
 
 use ZFPJ\System\Fork\Storage\Segment,
@@ -150,7 +155,7 @@ class ForkManager
     {
         if($this->isStarted) {
             $this->closeChildren();
-            throw new Exception\RuntimeException('manager is already started');
+            throw new Exception\RuntimeException('Manager is already started');
         }
         $this->isStarted = true;
         $this->_createChildren();
@@ -165,7 +170,7 @@ class ForkManager
         if($this->shareResult) {
             $max = $this->getContainer()->max();
             if($max<$this->numChildren) {
-                throw new Exception\RuntimeException('max creation child is ' . $max . ', increase container memory size to fork more child');
+                throw new Exception\RuntimeException('Max creation child is ' . $max . ', increase container memory size to fork more child');
             }
         }
         
@@ -174,7 +179,7 @@ class ForkManager
             $pid = pcntl_fork();
             
             if($pid == -1) {
-                throw new Exception\RuntimeException('fork error in the children create');
+                throw new Exception\RuntimeException('Fork error in the children create');
             }
             else if($pid == 0) {
                 $this->uid = $i+1;
@@ -204,7 +209,7 @@ class ForkManager
     public function timeout($time)
     {
         if($time <= 0) {
-            throw new Exception\RuntimeException('invalid timeout value');
+            throw new Exception\RuntimeException('Invalid timeout value');
         }
         $this->timeout = $time;
         return $this;
@@ -235,11 +240,16 @@ class ForkManager
         }
         
         if($this->shareResult) {
-            if(is_string($result)) {
-                $limit = $this->getContainer()->getBlocSize();
-                $result = mb_substr($result, 0, $limit);
-                $this->getContainer()->write($this->uid, $result);
+            if(is_object($result) && method_exists($result, '__toString')) {
+                $result = $result->__toString();
             }
+            if(!is_string($result)) {
+                trigger_error('Result is not a string, ' . gettype($result) . ' type, and cannot be shared.', E_USER_WARNING);
+                $result = '';
+            }
+            $limit = $this->getContainer()->getBlocSize();
+            $result = mb_substr($result, 0, $limit);
+            $this->getContainer()->write($this->uid, $result);
         }
         posix_kill($this->pid, 9);
     }
@@ -366,7 +376,7 @@ class ForkManager
             pcntl_waitpid($handler, $statut, WUNTRACED);
             $status[$uid] = $statut;
             if(intval($statut) !== 9 && intval($statut) != 0) {
-                trigger_error('pid killed "' . $handler . '" has statut ' . $statut, E_USER_NOTICE);
+                trigger_error('Pid killed "' . $handler . '" has statut ' . $statut, E_USER_NOTICE);
             }
         }
         pcntl_alarm(0);
@@ -381,7 +391,7 @@ class ForkManager
     public function rewind()
     {
         if(!$this->isFinished) {
-            throw new Exception\RuntimeException('fork must be finished to rewind and replay');
+            throw new Exception\RuntimeException('Fork must be finished to rewind and replay');
         }
         
         pcntl_alarm(0);
@@ -443,7 +453,7 @@ class ForkManager
     public function setShareResult($b)
     {
         if($this->isStarted) {
-            throw new Exception\RuntimeException('invalid timeout value');
+            throw new Exception\RuntimeException('Invalid timeout value');
         }
         $this->shareResult = $b;
         return $this;
@@ -518,5 +528,3 @@ class ForkManager
         return $this->isStopped;
     }
 }
-
-?>

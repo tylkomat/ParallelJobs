@@ -1,5 +1,10 @@
 <?php
 
+/*
+ * This file is part of the ZFPJ package.
+ * @copyright Copyright (c) 2012 Blanchon Vincent - France (http://developpeur-zend-framework.fr - blanchon.vincent@gmail.com)
+ */
+
 namespace ZFPJ\System\Fork\Storage;
 
 use ZFPJ\System\Fork\Exception\RuntimeException;
@@ -28,7 +33,7 @@ class Results implements ResultsInterface
     public function addResult($child, $result)
     {
         if(!$result instanceof Result\ResultInterface) {
-            throw new RuntimeException('result type must be implements ResultInterface');
+            throw new RuntimeException('Result type must be implements ResultInterface');
         }
         $this->results[$child-1] = $result;
     }

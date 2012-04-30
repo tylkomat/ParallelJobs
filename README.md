@@ -1,7 +1,7 @@
-ZF2 Parallel Jobs
+ZF2 Parallel jobs
 ============
 
-Version 1.0beta Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
+Version 1.1 Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
 
 Introduction
 ------------

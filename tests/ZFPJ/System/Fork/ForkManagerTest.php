@@ -11,12 +11,13 @@ class ManagerTest extends TestCase
     public function setUp()
     {
         require_once realpath(__DIR__.'/TestAsset/Job.php');
+        require_once realpath(__DIR__.'/TestAsset/JobObject.php');
     }
     
     protected function mockHandler()
     {
-        $errorH = $this->getMock ('ErrorHandler', array ('error_handler'));
-        $errorH->expects ($this->atLeastOnce())->method ('error_handler');
+        $errorH = $this->getMock('ErrorHandler', array ('error_handler'));
+        $errorH->expects($this->atLeastOnce())->method ('error_handler');
         set_error_handler (array($errorH, 'error_handler'));
     }
     
@@ -362,5 +363,41 @@ class ManagerTest extends TestCase
             }
             $manager->rewind();
         }
+    }
+    
+    public function testMultipleJobsWhithShareObject()
+    {
+        $job = new Job();
+        $jobObject = new JobObject();
+
+        $manager = new \ZFPJ\System\Fork\ForkManager();
+        $manager->setShareResult(true);
+        $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
+        $manager->doTheJobChild(2, array($job, 'doSomething'), 'value');
+        $manager->createChildren(2);
+        $manager->wait();
+        $results = $manager->getSharedResults();
+        
+        $this->assertEquals('nc', $results->getChild(1)->getResult());
+        $this->assertEquals('ok', $results->getChild(2)->getResult());
+    }
+    
+    public function testMultipleJobsWhithShareObjectString()
+    {
+        $this->mockHandler();
+        $job = new Job();
+        $jobObject = new JobInvalidObject();
+
+        $manager = new \ZFPJ\System\Fork\ForkManager();
+        $manager->setShareResult(true);
+        $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
+        $manager->createChildren(2);
+        $manager->wait();
+        $results = $manager->getSharedResults();
+        
+        $this->assertEquals('', $results->getChild(1)->getResult());
+        $this->assertEquals('', $results->getChild(2)->getResult());
+        
+        restore_error_handler();
     }
 }
