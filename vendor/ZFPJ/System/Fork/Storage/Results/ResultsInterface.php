@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2012 Blanchon Vincent - France (http://developpeur-zend-framework.fr - blanchon.vincent@gmail.com)
  */
 
-namespace ZFPJ\System\Fork\Storage;
+namespace ZFPJ\System\Fork\Storage\Results;
 
 interface ResultsInterface
 {

@@ -12,6 +12,7 @@ class ManagerTest extends TestCase
     {
         require_once realpath(__DIR__.'/TestAsset/Job.php');
         require_once realpath(__DIR__.'/TestAsset/JobObject.php');
+        require_once realpath(__DIR__.'/TestAsset/JobLongString.php');
     }
     
     protected function mockHandler()
@@ -248,7 +249,6 @@ class ManagerTest extends TestCase
     {
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
-        $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));
 
         $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->doTheJob($job, 'value');
@@ -260,10 +260,6 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsStartAndRewind()
     {
-        $jobObject = new Job();
-        $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
-        $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));
-
         $manager = new \ZFPJ\System\Fork\ForkManager();
         $this->setExpectedException('ZFPJ\System\Fork\Exception\RuntimeException');
         $manager->rewind();
@@ -319,7 +315,6 @@ class ManagerTest extends TestCase
     {
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
-        $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));
 
         $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->doTheJob($job, 'value');
@@ -338,9 +333,7 @@ class ManagerTest extends TestCase
     public function testMultipleJobsInLoop()
     {
         $jobObject = new Job();
-        $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
-        $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));
-
+        
         $manager = new \ZFPJ\System\Fork\ForkManager();
         $manager->setAutoStart(false);
         $manager->setShareResult(true);
@@ -384,8 +377,6 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsWhithShareObjectString()
     {
-        $this->mockHandler();
-        $job = new Job();
         $jobObject = new JobInvalidObject();
 
         $manager = new \ZFPJ\System\Fork\ForkManager();
@@ -397,7 +388,52 @@ class ManagerTest extends TestCase
         
         $this->assertEquals('', $results->getChild(1)->getResult());
         $this->assertEquals('', $results->getChild(2)->getResult());
+    }
+    
+    public function testMultipleJobsWhithShareLongString()
+    {
+        $jobObject = new JobLongString();
+
+        $manager = new \ZFPJ\System\Fork\ForkManager();
+        $manager->setShareResult(true);
+        $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
+        $manager->createChildren(2);
+        $manager->wait();
+        $results = $manager->getSharedResults();
+        $size = $manager->getContainer()->getBlocSize();
+        $this->assertEquals($size, strlen($results->getChild(1)->getResult()));
+        $this->assertEquals(substr('azertyuiopazertyuiopazertyuiopazertyuiop', 0, $size), $results->getChild(1)->getResult());
+    }
+    
+    public function testMultipleJobsWhithFileContainer()
+    {
+        $jobObject = new JobObject();
+
+        $manager = new \ZFPJ\System\Fork\ForkManager();
+        $manager->setContainer(new \ZFPJ\System\Fork\Storage\File());
+        $manager->setShareResult(true);
+        $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
+        $manager->createChildren(1);
+        $manager->wait();
+        $results = $manager->getSharedResults();
         
-        restore_error_handler();
+        $this->assertEquals(true, is_object($results->getChild(1)->getResult()));
+        $this->assertEquals('ZFPJ\System\Fork\Storage\File', get_class($manager->getContainer()));
+        $this->assertInstanceOf('ZFPJTest\System\Fork\JobObjectString', $results->getChild(1)->getResult());
+    }
+    
+    public function testMultipleJobsWhithBadFileContainer()
+    {
+        $jobObject = new JobObject();
+
+        $manager = new \ZFPJ\System\Fork\ForkManager();
+        $manager->setContainer(new \ZFPJ\System\Fork\Storage\File('./unknow-directory'));
+        $manager->setShareResult(true);
+        $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
+        $manager->createChildren(1);
+        $manager->wait();
+        
+        $results = $manager->getSharedResults();
+        $this->assertEquals(false, $results->getChild(1)->getResult());
     }
 }

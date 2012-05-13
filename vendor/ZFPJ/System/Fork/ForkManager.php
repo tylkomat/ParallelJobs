@@ -29,7 +29,7 @@ class ForkManager
      * Fork container
      * @var Segment 
      */
-    protected $container;
+    protected $container = null;
         
     /**
      * fork parent
@@ -113,7 +113,7 @@ class ForkManager
      * Default results container
      * @var string
      */
-    protected $defaultResultsContainer = 'ZFPJ\System\Fork\Storage\Results';
+    protected $defaultResultsContainer = 'ZFPJ\System\Fork\Storage\Results\Results';
     
     /**
      * Default result container
@@ -238,17 +238,8 @@ class ForkManager
         else if($this->callback) {
             $result = $this->callback->call($this->callbackParam);
         }
-        
+
         if($this->shareResult) {
-            if(is_object($result) && method_exists($result, '__toString')) {
-                $result = $result->__toString();
-            }
-            if(!is_string($result)) {
-                trigger_error('Result is not a string, ' . gettype($result) . ' type, and cannot be shared.', E_USER_WARNING);
-                $result = '';
-            }
-            $limit = $this->getContainer()->getBlocSize();
-            $result = mb_substr($result, 0, $limit);
             $this->getContainer()->write($this->uid, $result);
         }
         posix_kill($this->pid, 9);
@@ -420,7 +411,7 @@ class ForkManager
      */
     public function getContainer()
     {
-        if(!$this->container) {
+        if(null === $this->container) {
             $this->container = new Segment();
         }
         return $this->container;
@@ -513,7 +504,7 @@ class ForkManager
      * @param string $container
      * @return ForkManager 
      */
-    public function setDefaultResultsContainer(Storage\ResultsInterface $container)
+    public function setDefaultResultsContainer(Storage\Results\ResultsInterface $container)
     {
         $this->defaultResultsContainer = $container;
         return $this;

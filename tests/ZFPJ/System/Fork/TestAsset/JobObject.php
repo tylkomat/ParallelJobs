@@ -34,4 +34,5 @@ class JobObjectString
 
 class JobObjectInvalidString
 {
+    protected $attribut = 1;
 }

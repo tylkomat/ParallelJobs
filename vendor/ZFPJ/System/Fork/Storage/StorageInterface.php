@@ -10,16 +10,17 @@ namespace ZFPJ\System\Fork\Storage;
 interface StorageInterface
 {
     /**
-     * Read fork uid
+     * Read contents related $uid fork
      * @param int
      */
     public function read($uid);
     
     /**
-     * Write fork uid
-     * @param int
+     * Write contents related $uid fork
+     * @param int $uid
+     * @param string $str
      */
-    public function write($uid, $pid);
+    public function write($uid, $mixed);
     
     /**
      * Close storage

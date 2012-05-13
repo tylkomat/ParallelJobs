@@ -67,11 +67,19 @@ class Segment implements StorageInterface
      * Write fork uid
      * @param int
      */
-    public function write($uid, $str)
+    public function write($uid, $mixed)
     {   
         if(!$this->memory) {
             $this->alloc();
         }
+        if(is_object($mixed) && method_exists($mixed, '__toString')) {
+            $mixed = $mixed->__toString();
+        }
+        if(!is_string($mixed)) {
+            $mixed = '';
+        }
+        $limit = $this->getBlocSize();
+        $str = mb_substr($mixed, 0, $limit);
         $str = str_pad($str, $this->blocSize);
         return shmop_write($this->memory, $str, $uid*$this->blocSize);
     }
