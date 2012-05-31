@@ -34,7 +34,7 @@ class File implements StorageInterface
     }
     
     /**
-     * Read fork uid
+     * Read contents related $uid fork
      * @param int
      */
     public function read($uid)
@@ -47,7 +47,7 @@ class File implements StorageInterface
     }
     
     /**
-     * Write fork uid
+     * Write contents related $uid fork
      * @param int
      */
     public function write($uid, $mixed)
@@ -56,9 +56,10 @@ class File implements StorageInterface
         if(!$fp) {
             return false;
         }
-        fwrite($fp, serialize($mixed));
+        $r = fwrite($fp, serialize($mixed));
         fclose($fp);
         $this->files[] = $this->dir. '/'. $uid;
+        return $r;
     }
     
     /**
@@ -78,6 +79,6 @@ class File implements StorageInterface
      */
     public function max()
     {
-        return intval(ini_get('memory_limit'))*1024*1024;
+        return intval(ini_get('memory_limit'))*1024*1024 / 256; // 256 bytes per file
     }
 }

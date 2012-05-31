@@ -436,4 +436,21 @@ class ManagerTest extends TestCase
         $results = $manager->getSharedResults();
         $this->assertEquals(false, $results->getChild(1)->getResult());
     }
+    
+    public function testMultipleJobsWhithMemcachedContainer()
+    {
+        $jobObject = new JobObject();
+
+        $manager = new \ZFPJ\System\Fork\ForkManager();
+        $manager->setContainer(new \ZFPJ\System\Fork\Storage\Memcached());
+        $manager->setShareResult(true);
+        $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
+        $manager->createChildren(1);
+        $manager->wait();
+        $results = $manager->getSharedResults();
+        
+        $this->assertEquals(true, is_object($results->getChild(1)->getResult()));
+        $this->assertEquals('ZFPJ\System\Fork\Storage\Memcached', get_class($manager->getContainer()));
+        $this->assertInstanceOf('ZFPJTest\System\Fork\JobObjectString', $results->getChild(1)->getResult());
+    }
 }

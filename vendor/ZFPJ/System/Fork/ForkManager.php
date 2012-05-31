@@ -127,7 +127,7 @@ class ForkManager
     public function __construct()
     {   
         if(!function_exists('pcntl_fork')) {
-            throw new RuntimeException('pcntl functions must exists to run this module');
+            throw new Exception\RuntimeException('pcntl functions must exists to run this module');
         }
         
         $this->forkParent = getmypid();
@@ -412,7 +412,7 @@ class ForkManager
     public function getContainer()
     {
         if(null === $this->container) {
-            $this->container = new Segment();
+            $this->setContainer(new Segment());
         }
         return $this->container;
     }

@@ -47,31 +47,30 @@ class Segment implements StorageInterface
      */
     public function alloc()
     {
+        if(null !== $this->memory) {
+            return;
+        }
         $this->memory = shmop_open(ftok(__FILE__, $this->identifier), "c", 0644, $this->segmentSize);
     }
     
     /**
-     * Read fork uid
+     * Read contents related $uid fork
      * @param int
      */
     public function read($uid)
     {   
-        if(!$this->memory) {
-            $this->alloc();
-        }
+        $this->alloc();
         $str = shmop_read($this->memory, $uid*$this->blocSize, $this->blocSize);
         return trim($str);
     }
     
     /**
-     * Write fork uid
+     * Write contents related $uid fork
      * @param int
      */
     public function write($uid, $mixed)
     {   
-        if(!$this->memory) {
-            $this->alloc();
-        }
+        $this->alloc();
         if(is_object($mixed) && method_exists($mixed, '__toString')) {
             $mixed = $mixed->__toString();
         }
@@ -90,7 +89,7 @@ class Segment implements StorageInterface
      */
     public function close()
     {   
-        if(!$this->memory) {
+        if(null === $this->memory) {
             return;
         }
         shmop_close($this->memory);
