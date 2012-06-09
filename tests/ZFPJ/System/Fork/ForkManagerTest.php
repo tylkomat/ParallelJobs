@@ -453,4 +453,35 @@ class ManagerTest extends TestCase
         $this->assertEquals('ZFPJ\System\Fork\Storage\Memcached', get_class($manager->getContainer()));
         $this->assertInstanceOf('ZFPJTest\System\Fork\JobObjectString', $results->getChild(1)->getResult());
     }
+    
+    public function testWithoutJobRegister()
+    {
+        $jobObject = new JobObjectReturnParam();
+
+        $manager = new \ZFPJ\System\Fork\ForkManager();
+        $manager->setContainer(new \ZFPJ\System\Fork\Storage\Memcached());
+        $manager->setShareResult(true);
+        $object = new \stdClass();
+        $object->key = 'value';
+        $manager->doTheJob(array($jobObject, 'doSomething'), $object);
+        $manager->createChildren(1);
+        $manager->wait();
+        $results = $manager->getSharedResults();
+        
+        $child1 = $results->getChild(1)->getResult();
+        $this->assertEquals(true, is_object($child1));
+        $this->assertEquals('value', $child1->key);
+        $this->assertEquals('ZFPJ\System\Fork\Storage\Memcached', get_class($manager->getContainer()));
+    }
+    
+    public function testCanRegisterObjectInJobParams()
+    {
+        $manager = new ForkManager();
+        $manager->setShareResult(true);
+        $manager->createChildren(2);
+        $manager->wait();
+        $results = $manager->getSharedResults();
+        $manager->getContainer()->close();
+        $this->assertEquals(null, $results->getChild(1)->getResult());
+    }
 }

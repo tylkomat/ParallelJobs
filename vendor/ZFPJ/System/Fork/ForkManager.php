@@ -238,6 +238,9 @@ class ForkManager
         else if($this->callback) {
             $result = $this->callback->call($this->callbackParam);
         }
+        else {
+            $result = null; // no job
+        }
 
         if($this->shareResult) {
             $this->getContainer()->write($this->uid, $result);
@@ -255,7 +258,7 @@ class ForkManager
         if(!$callback instanceof CallbackHandler) {
             $callback = new CallbackHandler($callback);
         }
-        if(is_string($params)) {
+        if(!is_array($params)) {
             $params = array($params);
         }
         $this->callback = $callback;
@@ -273,7 +276,7 @@ class ForkManager
         if(!$callback instanceof CallbackHandler) {
             $callback = new CallbackHandler($callback);
         }
-        if(is_string($params)) {
+        if(!is_array($params)) {
             $params = array($params);
         }
         $this->callbackChildren[$num] = $callback;

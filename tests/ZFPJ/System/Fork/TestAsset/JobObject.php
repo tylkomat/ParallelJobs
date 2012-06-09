@@ -12,6 +12,15 @@ class JobObject
     }
 }
 
+class JobObjectReturnParam
+{
+    public function doSomething($arg)
+    {
+        sleep(1);
+        return $arg;
+    }
+}
+
 class JobInvalidObject
 {
     public function doSomething($arg)
