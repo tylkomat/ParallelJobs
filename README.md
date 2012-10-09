@@ -127,7 +127,7 @@ $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObjectSimple, 'doSomething'));
 
 $manager = $this->getServiceLocator()->get('ForkManager');
-$memcachedContainer = $this->sm->get('ForkManagerFileContainer');
+$memcachedContainer = $this->getServiceLocator()->get('ForkManagerFileContainer');
 $manager->setContainer(memcachedContainer);
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
@@ -156,7 +156,7 @@ $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObjectSimple, 'doSomething'));
 
 $manager = $this->getServiceLocator()->get('ForkManager');
-$memcachedContainer = $this->sm->get('ForkManagerMemcachedContainer');
+$memcachedContainer = $this->getServiceLocator()->get('ForkManagerMemcachedContainer');
 $manager->setContainer(memcachedContainer);
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
