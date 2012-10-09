@@ -1,15 +1,17 @@
 ZF2 Parallel jobs
 ============
 
-Version 1.3 Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
+Version 1.4 Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
 
 Introduction
 ------------
 
-ZF2 parallel provide a fork manager.
+ZF2 ParallelJobs provide a fork manager.
 Fork manager can create children, run specific jobs and share result.
 Share type results available : segment memory, memcache and file.
 
+Just add "ParallelJobs" directoy in your ZF2 modules directory and put the code.
+To run the tests, run "run.sh" in the "tests" directory.
 
 Fork manager usage
 ------------
@@ -74,7 +76,7 @@ class JobObjectSimple
 
 $jobObject = new Job();
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = $this->getServiceLocator()->get('ForkManager');
 $manager->setShareResult(true);
 $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
 $manager->createChildren(1);
@@ -97,7 +99,7 @@ $jobObject = new Job();
 $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = $this->getServiceLocator()->get('ForkManager');
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
 $manager->doTheJobChild(1, $job2, array('value 1', 'value 2'));
@@ -124,8 +126,9 @@ $jobObjectSimple = new JobObjectSimple();
 $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObjectSimple, 'doSomething'));
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
-$manager->setContainer(new \ZFPJ\System\Fork\Storage\File());
+$manager = $this->getServiceLocator()->get('ForkManager');
+$memcachedContainer = $this->sm->get('ForkManagerFileContainer');
+$manager->setContainer(memcachedContainer);
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
 $manager->doTheJobChild(1, $job2, array('value 1', 'value 2'));
@@ -152,8 +155,9 @@ $jobObjectSimple = new JobObjectSimple();
 $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObjectSimple, 'doSomething'));
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
-$manager->setContainer(new \ZFPJ\System\Fork\Storage\Memcached());
+$manager = $this->getServiceLocator()->get('ForkManager');
+$memcachedContainer = $this->sm->get('ForkManagerMemcachedContainer');
+$manager->setContainer(memcachedContainer);
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
 $manager->doTheJobChild(1, $job2, array('value 1', 'value 2'));
@@ -178,7 +182,7 @@ Run in command line :
 $jobObject = new Job();
 $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = $this->getServiceLocator()->get('ForkManager');
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
 $manager->createChildren(8);
@@ -203,7 +207,7 @@ $jobObject = new Job();
 $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));   
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = $this->getServiceLocator()->get('ForkManager');
 $manager->setShareResult(true);
 $manager->setAutoStart(false);
 $manager->doTheJob($job, 'value');
@@ -230,7 +234,7 @@ Run in command line :
 
 $jobObject = new Job();
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = $this->getServiceLocator()->get('ForkManager');
 $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
 $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
 $manager->timeout(60);
@@ -251,7 +255,7 @@ Run in command line :
 
 $jobObject = new Job();
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = $this->getServiceLocator()->get('ForkManager');
 $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
 $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
 $manager->timeout(60);
@@ -273,7 +277,7 @@ Run in command line :
 
 $jobObject = new Job();
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = $this->getServiceLocator()->get('ForkManager');
 $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
 $manager->setAutoStart(false);
 $manager->createChildren(2);

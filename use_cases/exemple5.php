@@ -3,7 +3,7 @@
 $jobObject = new Job();
 $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = new \ParallelJobs\System\Fork\ForkManager();
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
 $manager->createChildren(8);

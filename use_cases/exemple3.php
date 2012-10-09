@@ -5,8 +5,8 @@ $jobObjectSimple = new JobObjectSimple();
 $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObjectSimple, 'doSomething'));
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
-$manager->setContainer(new \ZFPJ\System\Fork\Storage\File());
+$manager = new \ParallelJobs\System\Fork\ForkManager();
+$manager->setContainer(new \ParallelJobs\System\Fork\Storage\File());
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
 $manager->doTheJobChild(1, $job2, array('value 1', 'value 2'));

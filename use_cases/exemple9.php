@@ -2,7 +2,7 @@
 
 $jobObject = new Job();
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = new \ParallelJobs\System\Fork\ForkManager();
 $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
 $manager->setAutoStart(false);
 $manager->createChildren(2);

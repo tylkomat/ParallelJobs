@@ -4,7 +4,7 @@ $jobObject = new Job();
 $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));   
 
-$manager = new \ZFPJ\System\Fork\ForkManager();
+$manager = new \ParallelJobs\System\Fork\ForkManager();
 $manager->setShareResult(true);
 $manager->setAutoStart(false);
 $manager->doTheJob($job, 'value');
