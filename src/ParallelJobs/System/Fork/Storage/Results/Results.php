@@ -17,7 +17,7 @@ class Results implements ResultsInterface
      * @var array
      */
     protected $results = array();
-    
+
     /**
      * Results construction
      */
@@ -27,7 +27,7 @@ class Results implements ResultsInterface
             $this->results = $results;
         }
     }
-    
+
     /**
      * add a result object
      */
@@ -38,7 +38,7 @@ class Results implements ResultsInterface
         }
         $this->results[$child-1] = $result;
     }
-    
+
     /**
      * Get first child
      * @return int
@@ -47,10 +47,10 @@ class Results implements ResultsInterface
     {
         return $this->getChild(1);
     }
-    
+
     /**
      * Get child
-     * @param int $num 
+     * @param int $num
      */
     public function getChild($num)
     {

@@ -14,20 +14,20 @@ interface StorageInterface
      * @param int
      */
     public function read($uid);
-    
+
     /**
      * Write contents related $uid fork
      * @param int $uid
      * @param string $str
      */
     public function write($uid, $mixed);
-    
+
     /**
      * Close storage
      * @param int
      */
     public function close();
-    
+
     /**
      * Get max bloc allow
      * @return int

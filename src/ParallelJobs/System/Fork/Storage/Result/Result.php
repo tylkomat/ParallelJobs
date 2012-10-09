@@ -14,19 +14,19 @@ class Result implements ResultInterface
      * @var int
      */
     protected $uid;
-    
+
     /**
      * pid
      * @var int
      */
     protected $pid;
-    
+
     /**
      * result
      * @var string
      */
     protected $result;
-    
+
     /**
      * Get result
      * @return string
@@ -35,7 +35,7 @@ class Result implements ResultInterface
     {
         return $this->result;
     }
-    
+
     /**
      * Set result
      * @param string
@@ -45,7 +45,7 @@ class Result implements ResultInterface
         $this->result = $result;
         return $this;
     }
-    
+
     /**
      * Get uid
      * @return string
@@ -54,7 +54,7 @@ class Result implements ResultInterface
     {
         return $this->pid;
     }
-    
+
     /**
      * Set result
      * @param string
@@ -64,7 +64,7 @@ class Result implements ResultInterface
         $this->pid = $pid;
         return $this;
     }
-    
+
     /**
      * Get pid
      * @return string
@@ -73,7 +73,7 @@ class Result implements ResultInterface
     {
         return $this->uid;
     }
-    
+
     /**
      * Set result
      * @param string

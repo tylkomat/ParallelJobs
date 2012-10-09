@@ -15,130 +15,130 @@ class ForkManager
 {
     /**
      * Current id
-     * @var int 
+     * @var int
      */
     protected $uid;
-    
+
     /**
      * Current pid
-     * @var int 
+     * @var int
      */
     protected $pid;
-        
+
     /**
      * Fork container
-     * @var Segment 
+     * @var Segment
      */
     protected $container = null;
-        
+
     /**
      * fork parent
-     * @var type 
+     * @var type
      */
     protected $forkParent;
-    
+
     /**
      * Callback default
-     * @var mixed 
+     * @var mixed
      */
     protected $callback;
-    
+
     /**
      * Callback default params
-     * @var mixed 
+     * @var mixed
      */
     protected $callbackParam;
-    
+
     /**
      * Callback children
-     * @var mixed 
+     * @var mixed
      */
     protected $callbackChildren = array();
-    
+
     /**
      * Callback children params
-     * @var mixed 
+     * @var mixed
      */
     protected $callbackParamChildren = array();
-    
+
     /**
      * Auto start job for children
      * @var bool
      */
     protected $autoStart = true;
-    
+
     /**
      * Share children result
-     * @var bool 
+     * @var bool
      */
     protected $shareResult = false;
-    
+
     /**
      * Children handler
      * @var array
      */
     protected $handlers = array();
-    
+
     /**
      * Timeout
      * @var int
      */
     protected $timeout;
-    
+
     /**
      * Num of children
      * @var int
      */
     protected $numChildren;
-    
+
     /**
      * Flag start
      * @var bool
      */
     protected $isStarted = false;
-    
+
     /**
      * Flag finish
      * @var bool
      */
     protected $isFinished = false;
-    
+
     /**
      * Flag finish
      * @var bool
      */
     protected $isStopped = false;
-    
+
     /**
      * Default results container
      * @var string
      */
     protected $defaultResultsContainer = 'ParallelJobs\System\Fork\Storage\Results\Results';
-    
+
     /**
      * Default result container
      * @var string
      */
     protected $defaultResultContainer = 'ParallelJobs\System\Fork\Storage\Result\Result';
-    
+
     /**
      * Manager instance
      */
     public function __construct()
-    {   
+    {
         if(!function_exists('pcntl_fork')) {
             throw new Exception\RuntimeException('pcntl functions must exists to run this module');
         }
-        
+
         $this->forkParent = getmypid();
     }
-    
+
     /**
      * Children construction
-     * @param int $num 
+     * @param int $num
      */
     public function createChildren($num, $start = null)
-    {   
+    {
         $this->numChildren = $num;
         if(!is_null($start)) {
             $this->autoStart = $start;
@@ -147,7 +147,7 @@ class ForkManager
             $this->start();
         }
     }
-    
+
     /**
      * Fork start
      */
@@ -160,38 +160,36 @@ class ForkManager
         $this->isStarted = true;
         $this->_createChildren();
     }
-    
+
     /**
      * Children construction
-     * @param int $num 
+     * @param int $num
      */
     protected function _createChildren()
-    {   
+    {
         if($this->shareResult) {
             $max = $this->getContainer()->max();
             if($max<$this->numChildren) {
                 throw new Exception\RuntimeException('Max creation child is ' . $max . ', increase container memory size to fork more child');
             }
         }
-        
+
         for ($i = 0; $i < $this->numChildren; $i++) {
-            
+
             $pid = pcntl_fork();
-            
+
             if($pid == -1) {
                 throw new Exception\RuntimeException('Fork error in the children create');
-            }
-            else if($pid == 0) {
+            } else if($pid == 0) {
                 $this->uid = $i+1;
                 $this->pid = getmypid();
                 $this->runJob();
                 break;
-            }
-            else {
+            } else {
                 $this->handlers[$i+1] = $pid;
             }
         }
-        
+
         if($this->isForkParent()) {
             $this->registerTimeout();
             $this->uid = 0;
@@ -200,11 +198,11 @@ class ForkManager
             pcntl_signal(SIGINT, array($this, 'handler'));
         }
     }
-    
+
     /**
      * Set timeout
      * @param type $time
-     * @return ForkManager 
+     * @return ForkManager
      */
     public function timeout($time)
     {
@@ -214,7 +212,7 @@ class ForkManager
         $this->timeout = $time;
         return $this;
     }
-    
+
     /**
      * Register a timetout
      */
@@ -225,7 +223,7 @@ class ForkManager
             pcntl_signal(SIGALRM, array($this, "handler"));
         }
     }
-    
+
     /**
      * Run the fork job
      */
@@ -234,11 +232,9 @@ class ForkManager
         if(isset($this->callbackChildren[$this->uid])) {
             $callback = $this->callbackChildren[$this->uid];
             $result = $callback->call($this->callbackParamChildren[$this->uid]);
-        }
-        else if($this->callback) {
+        } else if($this->callback) {
             $result = $this->callback->call($this->callbackParam);
-        }
-        else {
+        } else {
             $result = null; // no job
         }
 
@@ -247,11 +243,11 @@ class ForkManager
         }
         posix_kill($this->pid, 9);
     }
-    
+
     /**
      * Set default jobs
      * @param mixed $callback
-     * @param mixed $params 
+     * @param mixed $params
      */
     public function doTheJob($callback, $params = array())
     {
@@ -265,11 +261,11 @@ class ForkManager
         $this->callbackParam = $params;
         return $this;
     }
-    
+
     /**
      * Set cild jobs
      * @param mixed $callback
-     * @param mixed $params 
+     * @param mixed $params
      */
     public function doTheJobChild($num, $callback, $params = array())
     {
@@ -283,16 +279,15 @@ class ForkManager
         $this->callbackParamChildren[$num] = $params;
         return $this;
     }
-    
+
     /**
      * ISignal handler.
      *
      * @param integer $signal signal number
      */
-    public function handler($signal) {
-        
-        switch($signal)
-        {
+    public function handler($signal)
+    {
+        switch($signal) {
             case SIGALRM :
                 $this->isStopped = true;
                 $this->closeChildren();
@@ -304,10 +299,10 @@ class ForkManager
             default: break;
         }
     }
-    
+
     /**
      * Broadcast signal
-     * @param type $signal 
+     * @param type $signal
      */
     public function broadcast($signal)
     {
@@ -318,7 +313,7 @@ class ForkManager
            posix_kill($handler, $signal);
         }
     }
-    
+
     /**
      * Close all children
      */
@@ -328,7 +323,7 @@ class ForkManager
            posix_kill($handler, 9);
        }
     }
-    
+
     /**
      * Close all children
      */
@@ -346,9 +341,9 @@ class ForkManager
         }
         $resultsContainer = $this->getDefaultResultsContainer();
         $results = new $resultsContainer();
-        
+
         foreach($this->handlers as $uid => $handler) {
-            
+
             $resultContainer = $this->getDefaultResultContainer();
             $result = new $resultContainer();
             $result->setUid($uid);
@@ -356,10 +351,10 @@ class ForkManager
             $result->setResult($this->getContainer()->read($uid));
             $results->addResult($uid, $result);
         }
-        
+
         return $results;
     }
-    
+
     /**
      * Wait children
      */
@@ -378,7 +373,7 @@ class ForkManager
         $this->isFinished = true;
         return $status;
     }
-    
+
     /**
      * Run again
      */
@@ -387,7 +382,7 @@ class ForkManager
         if(!$this->isFinished) {
             throw new Exception\RuntimeException('Fork must be finished to rewind and replay');
         }
-        
+
         pcntl_alarm(0);
         $this->getContainer()->close();
         $this->container = null;
@@ -398,19 +393,19 @@ class ForkManager
         $this->isFinished = false;
         return $this;
     }
-    
+
     /**
      * is the fork Parent
-     * @return bool 
+     * @return bool
      */
     public function isForkParent()
     {
         return $this->forkParent == getmypid();
     }
-        
+
     /**
      * Get fork container
-     * @return StorageInterface 
+     * @return StorageInterface
      */
     public function getContainer()
     {
@@ -419,30 +414,30 @@ class ForkManager
         }
         return $this->container;
     }
-    
+
     /**
      * Get fork container
-     * @return ForkManager 
+     * @return ForkManager
      */
     public function setContainer(StorageInterface $container)
     {
         $this->container = $container;
         return $this;
     }
-    
+
     /**
      * Get flag to share result
-     * @return bool 
+     * @return bool
      */
     public function getShareResult()
     {
         return $this->shareResult;
     }
-    
+
     /**
      * Set flag to share result
      * @param bool $b
-     * @return ForkManager 
+     * @return ForkManager
      */
     public function setShareResult($b)
     {
@@ -452,27 +447,27 @@ class ForkManager
         $this->shareResult = $b;
         return $this;
     }
-     
+
     /**
      * Get flag to auto start
-     * @return bool 
+     * @return bool
      */
     public function getAutoStart()
     {
         return $this->autoStart;
     }
-    
+
     /**
      * Set flag to auto start
      * @param bool $b
-     * @return ForkManager 
+     * @return ForkManager
      */
     public function setAutoStart($b)
     {
         $this->autoStart = $b;
         return $this;
     }
-    
+
     /**
      * Get default container
      * @return string
@@ -481,18 +476,18 @@ class ForkManager
     {
         return $this->defaultResultContainer;
     }
-    
+
     /**
      * Set default container
      * @param string $container
-     * @return ForkManager 
+     * @return ForkManager
      */
     public function setDefaultResultContainer(Storage\Result\ResultInterface $container)
     {
         $this->defaultResultContainer = $container;
         return $this;
     }
-    
+
     /**
      * Get default container
      * @return string
@@ -501,21 +496,21 @@ class ForkManager
     {
         return $this->defaultResultsContainer;
     }
-    
+
     /**
      * Set default container
      * @param string $container
-     * @return ForkManager 
+     * @return ForkManager
      */
     public function setDefaultResultsContainer(Storage\Results\ResultsInterface $container)
     {
         $this->defaultResultsContainer = $container;
         return $this;
     }
-    
+
     /**
      * Get flag stopped
-     * @return bool 
+     * @return bool
      */
     public function isStopped()
     {

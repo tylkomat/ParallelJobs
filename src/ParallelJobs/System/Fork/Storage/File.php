@@ -14,25 +14,25 @@ class File implements StorageInterface
      * @var string
      */
     protected $dir;
-    
+
     /**
      * List of files
      * @var array
      */
     protected $files = array();
-    
+
     /**
      *
-     * @param string $dir 
+     * @param string $dir
      */
     public function __construct($dir = null)
-    {   
+    {
         if($dir == null) {
             $dir = __DIR__ . '/tmp';
         }
         $this->dir = $dir;
     }
-    
+
     /**
      * Read contents related $uid fork
      * @param int
@@ -45,7 +45,7 @@ class File implements StorageInterface
         $contents = file_get_contents($this->dir. '/'. $uid);
         return unserialize($contents);
     }
-    
+
     /**
      * Write contents related $uid fork
      * @param int
@@ -61,18 +61,18 @@ class File implements StorageInterface
         $this->files[] = $this->dir. '/'. $uid;
         return $r;
     }
-    
+
     /**
      * Close storage
      * @param int
      */
     public function close()
-    {   
+    {
         foreach($this->files as $file) {
             @unlink($file);
         }
     }
-    
+
     /**
      * Get max bloc allow
      * @return int

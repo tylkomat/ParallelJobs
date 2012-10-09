@@ -16,13 +16,13 @@ class Memcached implements StorageInterface
      * @var string
      */
     protected $identifier;
-    
+
     /**
      * Memcached instance
-     * @var mixed 
+     * @var mixed
      */
     protected $memcached;
-    
+
     /**
      * Default config
      * @var array
@@ -31,10 +31,10 @@ class Memcached implements StorageInterface
         'host' => '127.0.0.1',
         'port' => 11211,
     );
-    
+
     /**
      * Construct segment memory
-     * @param type $identifier 
+     * @param type $identifier
      */
     public function __construct(array $config = array())
     {
@@ -45,7 +45,7 @@ class Memcached implements StorageInterface
             $this->config = array_merge($this->config, $config);
         }
     }
-    
+
     /**
      * Memory alloc
      */
@@ -60,40 +60,40 @@ class Memcached implements StorageInterface
             throw new RuntimeException('Connexion to memcache refused.');
         }
     }
-        
+
     /**
      * Read fork result
      * @param int
      */
     public function read($uid)
-    {   
+    {
         $this->alloc();
         return $this->memcached->get($uid);
     }
-    
+
     /**
      * Write fork result
      * @param int
      */
     public function write($uid, $mixed)
-    {   
+    {
         $this->alloc();
         return $this->memcached->set($uid, $mixed);
     }
-    
+
     /**
      * Close segment
      * @param int
      */
     public function close()
-    {   
+    {
         if(null === $this->memcached) {
             return;
         }
         $this->memcached->flush();
         $this->memcached->close();
     }
-    
+
     /**
      * Get max bloc allow
      */

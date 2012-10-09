@@ -8,5 +8,5 @@
 namespace ParallelJobs\System\Fork\Exception;
 
 interface ExceptionInterface
-{ 
+{
 }
