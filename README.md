@@ -1,16 +1,17 @@
 ZF2 Parallel jobs
 ============
 
-Version 1.4 Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
+Version 1.5 Created by [Vincent Blanchon](http://developpeur-zend-framework.fr/)
 
 Introduction
 ------------
 
-ZF2 ParallelJobs provide a fork manager.
+ZF2 module ParallelJobs provide a fork manager.
 Fork manager can create children, run specific jobs and share result.
-Share type results available : segment memory, memcache and file.
+/!\ To share the results, just download and active the [SimpleMemoryShared](https://github.com/blanchonvincent/SimpleMemoryShared) module 
+which provide some storage : segment memory, memcache and file.
 
-Just add "ParallelJobs" directoy in your ZF2 modules directory and put the code.
+Just add "ParallelJobs" (and "SimpleMemoryShared" if you want share the process result) directoy in your ZF2 modules directory.
 To run the tests, run "run.sh" in the "tests" directory.
 
 Fork manager usage
@@ -127,8 +128,7 @@ $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObjectSimple, 'doSomething'));
 
 $manager = $this->getServiceLocator()->get('ForkManager');
-$memcachedContainer = $this->getServiceLocator()->get('ForkManagerFileContainer');
-$manager->setContainer(memcachedContainer);
+$manager->setStorage('file');
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
 $manager->doTheJobChild(1, $job2, array('value 1', 'value 2'));
@@ -156,8 +156,7 @@ $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObjectSimple, 'doSomething'));
 
 $manager = $this->getServiceLocator()->get('ForkManager');
-$memcachedContainer = $this->getServiceLocator()->get('ForkManagerMemcachedContainer');
-$manager->setContainer(memcachedContainer);
+$manager->setStorage('memcached', array('host' => '127.0.0.1','port' => 11211));
 $manager->setShareResult(true);
 $manager->doTheJob($job, 'value');
 $manager->doTheJobChild(1, $job2, array('value 1', 'value 2'));

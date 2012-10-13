@@ -9,6 +9,8 @@ namespace ParallelJobs\System\Fork;
 
 use ParallelJobs\System\Fork\Storage\Segment;
 use ParallelJobs\System\Fork\Storage\StorageInterface;
+use SimpleMemoryShared\SimpleMemoryShared;
+use SimpleMemoryShared\Storage;
 use Zend\Stdlib\CallbackHandler;
 
 class ForkManager
@@ -29,7 +31,7 @@ class ForkManager
      * Fork container
      * @var Segment
      */
-    protected $container = null;
+    protected $storage = null;
 
     /**
      * fork parent
@@ -108,7 +110,12 @@ class ForkManager
      * @var bool
      */
     protected $isStopped = false;
-
+    
+    /**
+     * @var SimpleMemoryShared 
+     */
+    protected $memoryManager;
+    
     /**
      * Default results container
      * @var string
@@ -167,10 +174,11 @@ class ForkManager
      */
     protected function _createChildren()
     {
-        if($this->shareResult) {
-            $max = $this->getContainer()->max();
-            if($max<$this->numChildren) {
-                throw new Exception\RuntimeException('Max creation child is ' . $max . ', increase container memory size to fork more child');
+        if($this->getShareResult()) {
+            if(!$this->getStorage()->canAllowBlocsMemory($this->numChildren)) {
+                throw new Exception\RuntimeException(
+                    'The current storage can provide ' . $this->numChildren . ' forks. Get a bigger storage to continue.'
+                );
             }
         }
 
@@ -237,9 +245,8 @@ class ForkManager
         } else {
             $result = null; // no job
         }
-
-        if($this->shareResult) {
-            $this->getContainer()->write($this->uid, $result);
+        if($this->getShareResult()) {
+            $this->getStorage()->write($this->uid, $result);
         }
         posix_kill($this->pid, 9);
     }
@@ -348,7 +355,7 @@ class ForkManager
             $result = new $resultContainer();
             $result->setUid($uid);
             $result->setPid($handler);
-            $result->setResult($this->getContainer()->read($uid));
+            $result->setResult($this->getStorage()->read($uid));
             $results->addResult($uid, $result);
         }
 
@@ -369,7 +376,9 @@ class ForkManager
             }
         }
         pcntl_alarm(0);
-        $this->getContainer()->close();
+        if($this->getShareResult()) {
+            $this->getStorage()->close();
+        }
         $this->isFinished = true;
         return $status;
     }
@@ -384,8 +393,10 @@ class ForkManager
         }
 
         pcntl_alarm(0);
-        $this->getContainer()->close();
-        $this->container = null;
+        if($this->getShareResult()) {
+            $this->getStorage()->close();
+        }
+        $this->storage = null;
         $this->handlers = array();
         $this->timeout = null;
         $this->isStopped = false;
@@ -404,24 +415,22 @@ class ForkManager
     }
 
     /**
-     * Get fork container
-     * @return StorageInterface
+     * Get the current storage (proxy by SimpleMemoryShared)
+     * @return SimpleMemoryShared
      */
-    public function getContainer()
+    public function getStorage()
     {
-        if(null === $this->container) {
-            $this->setContainer(new Segment());
-        }
-        return $this->container;
+        return $this->getMemoryManager()->getStorage();
     }
 
     /**
-     * Get fork container
-     * @return ForkManager
+     * Set the current storage (proxy by SimpleMemoryShared)
+     * @param mixed $storage
+     * @return ForkManager 
      */
-    public function setContainer(StorageInterface $container)
-    {
-        $this->container = $container;
+    public function setStorage($storage)
+    {   
+        $this->getMemoryManager()->setStorage($storage);
         return $this;
     }
 
@@ -515,5 +524,29 @@ class ForkManager
     public function isStopped()
     {
         return $this->isStopped;
+    }
+    
+    /**
+     * Get the memory manager
+     * @return MemorySharedPluginManager 
+     */
+    public function getMemoryManager()
+    {
+        if(null === $this->memoryManager) {
+            throw new \RuntimeException('You cannot share the processus results beacuse '
+                . 'the MemoryManager can be created. Use SimpleMemoryShared module to get automatically the manager.');
+        }
+        return $this->memoryManager;
+    }
+    
+    /**
+     * Set the memory manager
+     * @param SimpleMemoryShared $memoryManager
+     * @return SimpleMemoryShared 
+     */
+    public function setMemoryManager(SimpleMemoryShared $memoryManager)
+    {
+        $this->memoryManager = $memoryManager;
+        return $this;
     }
 }

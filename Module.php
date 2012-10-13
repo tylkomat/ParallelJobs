@@ -33,28 +33,15 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface,
                     $manager = new System\Fork\ForkManager();
                     $manager->setShareResult($config['share_result']);
                     $manager->setAutoStart($config['auto_start']);
-                    $container = $sm->get($config['container']);
-                    $manager->setContainer($container);
+                    if($sm->has('SimpleMemoryShared')) {
+                        $sms = $sm->get('SimpleMemoryShared');
+                        $manager->setMemoryManager($sms);
+                    }
                     return $manager;
                 },
-                'ForkManagerFileContainer' => function($sm) {
-                    $config = $sm->get('Config');
-                    $config = $config['fork_manager_file_container'];
-                    $container = new System\Fork\Storage\File($config['dir']);
-                    return $container;
-                },
-                'ForkManagerMemcachedContainer' => function($sm) {
-                    $config = $sm->get('Config');
-                    $config = $config['fork_manager_memcached_container'];
-                    $container = new System\Fork\Storage\Memcached($config['config']);
-                    return $container;
-                },
-                'ForkManagerSegmentContainer' => function($sm) {
-                    $config = $sm->get('Config');
-                    $config = $config['fork_manager_segment_container'];
-                    $container = new System\Fork\Storage\Segment($config['identifier']);
-                    return $container;
-                },
+            ),
+            'aliases' => array(
+                'ParallelJobsManager' => 'ForkManager',
             ),
         );
     }

@@ -15,20 +15,35 @@ class ManagerTest extends TestCase
 {
     protected $sm;
     
+    protected $sms;
+    
     public function setUp()
     {
         require_once realpath(__DIR__.'/TestAsset/Job.php');
         require_once realpath(__DIR__.'/TestAsset/JobObject.php');
         require_once realpath(__DIR__.'/TestAsset/JobLongString.php');
         
-        // ZF2 specifics tests
+        // load ParallelJobs config
         require_once __DIR__ . '/../../../../Module.php';
         $module = new \ParallelJobs\Module();
         $serviceConfig = $module->getServiceConfig();
         $config = include __DIR__ . '/../../../../config/module.config.php';
+        
+        // load SimpleMemoryShared config
+        if(null !== DIR_SMS) {
+            require_once DIR_SMS . '/Module.php';
+            $module = new \SimpleMemoryShared\Module();
+            $serviceConfig = array_replace_recursive($serviceConfig, $module->getServiceConfig());
+            $config = array_replace_recursive($config, include DIR_SMS . '/config/module.config.php');
+        }
+        
         $this->sm = new ServiceManager\ServiceManager(new ServiceManager\Config($serviceConfig));
         $this->sm->setService('Config', $config);
         $this->sm->setAllowOverride(true);
+        
+        if(null !== DIR_SMS) {
+            $this->sms = $this->sm->get('SimpleMemoryShared');
+        }
     }
     
     protected function mockHandler()
@@ -38,45 +53,63 @@ class ManagerTest extends TestCase
         set_error_handler (array($errorH, 'error_handler'));
     }
     
+    // ZF2 specifics tests
+    public function testCanRetrieveFactory()
+    {
+        $manager = $this->sm->get('ForkManager');
+        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
+        $manager = $this->sm->get('ParallelJobsManager');
+        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
+    }
+    
     public function testSimpleJob()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new CallbackHandler(array($jobObject, 'doSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->doTheJob($job, 'value');
         $manager->createChildren(2);
         $manager->wait();
         $results = $manager->getSharedResults();
-        $manager->getContainer()->close();
+        $manager->getStorage()->close();
         $this->assertEquals('ok', $results->getChild(1)->getResult());
     }
     
     public function testMultipleJob()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->doTheJob($job, 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
         $manager->createChildren(2);
         $manager->wait();
         $results = $manager->getSharedResults();
-        $manager->getContainer()->close();
+        $manager->getStorage()->close();
         $this->assertEquals('ko', $results->getChild(1)->getResult());
         $this->assertEquals('ok', $results->getChild(2)->getResult());
     }
     
     public function testMultipleJobStart()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->setAutoStart(false);
         $manager->doTheJob($job, 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
@@ -84,7 +117,7 @@ class ManagerTest extends TestCase
         $manager->start();
         $manager->wait();
         $results = $manager->getSharedResults();
-        $manager->getContainer()->close();
+        $manager->getStorage()->close();
         $this->assertEquals('ko', $results->getChild(1)->getResult());
         $this->assertEquals('ok', $results->getChild(2)->getResult());
     }
@@ -132,11 +165,14 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobNotShare()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $this->assertEquals(false, $manager->getSharedResults());
         $manager->setShareResult(false);
         $manager->doTheJob($job, 'value');
@@ -148,11 +184,14 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobShareAfterStarted()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->doTheJob($job, 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
         $manager->createChildren(2);
@@ -163,11 +202,14 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobShareNotFinished()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $this->mockHandler();
         $jobObject = new Job();
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
         $manager->doTheJobChild(1, array($jobObject, 'doOtherSomething'), array('value 1', 'value 2'));
         $manager->createChildren(2);
@@ -190,14 +232,18 @@ class ManagerTest extends TestCase
     
     public function testMultipleLimitNumJobsShare()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $this->setExpectedException('ParallelJobs\System\Fork\Exception\RuntimeException');
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
+        $manager->setStorage('segment');
         $manager->doTheJob($job, 'value');
-        $this->assertEquals(32, $manager->getContainer()->max());
+        $this->assertEquals(true, $manager->getStorage()->canAllowBlocsMemory(32));
         $manager->createChildren(40);
         $manager->wait();
     }
@@ -215,17 +261,21 @@ class ManagerTest extends TestCase
     
     public function testMultipleIncreaseLimitNumJobs()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->doTheJob($job, 'value');
-        $manager->getContainer()->setBlocSize(4);
-        $manager->getContainer()->setSegmentSize(256);
+        $manager->setStorage('segment');
+        $manager->getStorage()->setBlocSize(4);
+        $manager->getStorage()->setSegmentSize(256);
         $manager->createChildren(40);
         $manager->wait();
-        $this->assertEquals(64, $manager->getContainer()->max());
+        $this->assertEquals(true, $manager->getStorage()->canAllowBlocsMemory(64));
         $results = $manager->getSharedResults();
         $this->assertEquals('ok', $results->getChild(40)->getResult());
         $this->assertEquals(40, $results->getChild(40)->getUid());
@@ -233,12 +283,15 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsRewind()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
         $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->doTheJob($job, 'value');
         $manager->createChildren(2);
         $manager->wait();
@@ -283,12 +336,15 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsRewindWithChangeShare()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
         $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->doTheJob($job, 'value');
         $manager->createChildren(2);
         $manager->wait();
@@ -308,12 +364,15 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsRewindWithBadChangeShare()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         $job = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doSomething'));
         $job2 = new \Zend\Stdlib\CallbackHandler(array($jobObject, 'doOtherSomething'));
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->doTheJob($job, 'value');
         $manager->createChildren(2);
         $manager->wait();
@@ -324,7 +383,7 @@ class ManagerTest extends TestCase
         $manager->rewind()->setShareResult(false)->start();
         $manager->wait();
         $this->setExpectedException('ParallelJobs\System\Fork\Exception\RuntimeException');
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
     }
     
     public function testMultipleJobsRewindWithTimeout()
@@ -348,11 +407,14 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsInLoop()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new Job();
         
         $manager = new ForkManager();
         $manager->setAutoStart(false);
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->createChildren(2);
         for($i = 0; $i < 3; $i++) {
             if($i%2) {
@@ -376,11 +438,15 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsWhithShareObject()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $job = new Job();
         $jobObject = new JobObject();
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
+        $manager->setStorage('segment');
         $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
         $manager->doTheJobChild(2, array($job, 'doSomething'), 'value');
         $manager->createChildren(2);
@@ -393,10 +459,14 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsWhithShareObjectString()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new JobInvalidObject();
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
+        $manager->setStorage('segment');
         $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
         $manager->createChildren(2);
         $manager->wait();
@@ -408,75 +478,83 @@ class ManagerTest extends TestCase
     
     public function testMultipleJobsWhithShareLongString()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new JobLongString();
 
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
+        $manager->setStorage('segment');
         $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
         $manager->createChildren(2);
         $manager->wait();
         $results = $manager->getSharedResults();
-        $size = $manager->getContainer()->getBlocSize();
+        $size = $manager->getStorage()->getBlocSize();
         $this->assertEquals($size, strlen($results->getChild(1)->getResult()));
         $this->assertEquals(substr('azertyuiopazertyuiopazertyuiopazertyuiop', 0, $size), $results->getChild(1)->getResult());
     }
     
     public function testMultipleJobsWhithFileContainer()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new JobObject();
 
         $manager = new ForkManager();
-        $manager->setContainer(new \ParallelJobs\System\Fork\Storage\File());
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
+        $manager->setStorage('file');
         $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
         $manager->createChildren(1);
         $manager->wait();
         $results = $manager->getSharedResults();
         
         $this->assertEquals(true, is_object($results->getChild(1)->getResult()));
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\File', get_class($manager->getContainer()));
+        $this->assertEquals('SimpleMemoryShared\Storage\File', get_class($manager->getStorage()));
         $this->assertInstanceOf('ParallelJobsTest\System\Fork\JobObjectString', $results->getChild(1)->getResult());
     }
     
     public function testMultipleJobsWhithBadFileContainer()
     {
-        $jobObject = new JobObject();
-
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
+        $this->setExpectedException('SimpleMemoryShared\Storage\Exception\RuntimeException');
         $manager = new ForkManager();
-        $manager->setContainer(new \ParallelJobs\System\Fork\Storage\File('./unknow-directory'));
-        $manager->setShareResult(true);
-        $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
-        $manager->createChildren(1);
-        $manager->wait();
-        
-        $results = $manager->getSharedResults();
-        $this->assertEquals(false, $results->getChild(1)->getResult());
+        $manager->setStorage(new \SimpleMemoryShared\Storage\File('./unknow-directory'));
     }
     
     public function testMultipleJobsWhithMemcachedContainer()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new JobObject();
 
         $manager = new ForkManager();
-        $manager->setContainer(new \ParallelJobs\System\Fork\Storage\Memcached());
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
+        $manager->setStorage('memcached', array('host' => '127.0.0.1','port' => 11211));
         $manager->doTheJob(array($jobObject, 'doSomething'), 'value');
         $manager->createChildren(1);
         $manager->wait();
         $results = $manager->getSharedResults();
         
         $this->assertEquals(true, is_object($results->getChild(1)->getResult()));
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\Memcached', get_class($manager->getContainer()));
+        $this->assertEquals('SimpleMemoryShared\Storage\Memcached', get_class($manager->getStorage()));
         $this->assertInstanceOf('ParallelJobsTest\System\Fork\JobObjectString', $results->getChild(1)->getResult());
     }
     
     public function testWithoutJobRegister()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $jobObject = new JobObjectReturnParam();
 
         $manager = new ForkManager();
-        $manager->setContainer(new \ParallelJobs\System\Fork\Storage\Memcached());
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
+        $manager->setStorage('memcached');
         $object = new \stdClass();
         $object->key = 'value';
         $manager->doTheJob(array($jobObject, 'doSomething'), $object);
@@ -487,129 +565,20 @@ class ManagerTest extends TestCase
         $child1 = $results->getChild(1)->getResult();
         $this->assertEquals(true, is_object($child1));
         $this->assertEquals('value', $child1->key);
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\Memcached', get_class($manager->getContainer()));
+        $this->assertEquals('SimpleMemoryShared\Storage\Memcached', get_class($manager->getStorage()));
     }
     
     public function testCanRegisterObjectInJobParams()
     {
+        if(null === DIR_SMS) {
+            $this->markTestSkipped('The share of result is not activate.');
+        }
         $manager = new ForkManager();
-        $manager->setShareResult(true);
+        $manager->setMemoryManager($this->sms)->setShareResult(true);
         $manager->createChildren(2);
         $manager->wait();
         $results = $manager->getSharedResults();
-        $manager->getContainer()->close();
+        $manager->getStorage()->close();
         $this->assertEquals(null, $results->getChild(1)->getResult());
-    }
-    
-    // ZF2 specifics tests
-    public function testCanRetrieveFactory()
-    {
-        $manager = $this->sm->get('ForkManager');
-        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
-    }
-    
-    public function testCanCreateForkWithFileContainer()
-    {
-        $config = $this->sm->get('Config');
-        $config['fork_manager']['container'] = 'fork_manager_file_container';
-        $this->sm->setService('Config', $config);
-        $manager = $this->sm->get('ForkManager');
-        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\File', get_class($manager->getContainer()));
-        
-        $job = new \Zend\Stdlib\CallbackHandler(array(new Job(), 'doSomething'));
-        $manager->doTheJob($job, 'value');
-        $manager->createChildren(2);
-        $manager->wait();
-        $results = $manager->getSharedResults();
-        $this->assertEquals('ok', $results->getChild(1)->getResult());
-        $this->assertEquals('ok', $results->getChild(2)->getResult());
-    }
-    
-    public function testCanCreateForkWithSegmentContainer()
-    {
-        $config = $this->sm->get('Config');
-        $config['fork_manager']['container'] = 'fork_manager_segment_container';
-        $this->sm->setService('Config', $config);
-        $manager = $this->sm->get('ForkManager');
-        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\Segment', get_class($manager->getContainer()));
-        
-        $job = new \Zend\Stdlib\CallbackHandler(array(new Job(), 'doSomething'));
-        $manager->doTheJob($job, 'value');
-        $manager->createChildren(2);
-        $manager->wait();
-        $results = $manager->getSharedResults();
-        $this->assertEquals('ok', $results->getChild(1)->getResult());
-        $this->assertEquals('ok', $results->getChild(2)->getResult());
-    }
-    
-    public function testCanCreateForkWithMemcachedContainer()
-    {
-        $config = $this->sm->get('Config');
-        $config['fork_manager']['container'] = 'fork_manager_memcached_container';
-        $this->sm->setService('Config', $config);
-        $manager = $this->sm->get('ForkManager');
-        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\Memcached', get_class($manager->getContainer()));
-        
-        $job = new \Zend\Stdlib\CallbackHandler(array(new Job(), 'doSomething'));
-        $manager->doTheJob($job, 'value');
-        $manager->createChildren(2);
-        $manager->wait();
-        $results = $manager->getSharedResults();
-        $this->assertEquals('ok', $results->getChild(1)->getResult());
-        $this->assertEquals('ok', $results->getChild(2)->getResult());
-    }
-        
-    public function testCanSetTheContainerWithFileFactory()
-    {
-        $manager = $this->sm->get('ForkManager');
-        $memcachedContainer = $this->sm->get('ForkManagerFileContainer');
-        $manager->setContainer($memcachedContainer);
-        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\File', get_class($manager->getContainer()));
-        
-        $job = new \Zend\Stdlib\CallbackHandler(array(new Job(), 'doSomething'));
-        $manager->doTheJob($job, 'value');
-        $manager->createChildren(2);
-        $manager->wait();
-        $results = $manager->getSharedResults();
-        $this->assertEquals('ok', $results->getChild(1)->getResult());
-        $this->assertEquals('ok', $results->getChild(2)->getResult());
-    }
-    
-    public function testCanSetTheContainerWithSegmentFactory()
-    {
-        $manager = $this->sm->get('ForkManager');
-        $memcachedContainer = $this->sm->get('ForkManagerSegmentContainer');
-        $manager->setContainer($memcachedContainer);
-        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\Segment', get_class($manager->getContainer()));
-        
-        $job = new \Zend\Stdlib\CallbackHandler(array(new Job(), 'doSomething'));
-        $manager->doTheJob($job, 'value');
-        $manager->createChildren(2);
-        $manager->wait();
-        $results = $manager->getSharedResults();
-        $this->assertEquals('ok', $results->getChild(1)->getResult());
-        $this->assertEquals('ok', $results->getChild(2)->getResult());
-    }
-    
-    public function testCanSetTheContainerWithMemcachedFactory()
-    {
-        $manager = $this->sm->get('ForkManager');
-        $memcachedContainer = $this->sm->get('ForkManagerMemcachedContainer');
-        $manager->setContainer($memcachedContainer);
-        $this->assertEquals('ParallelJobs\System\Fork\ForkManager', get_class($manager));
-        $this->assertEquals('ParallelJobs\System\Fork\Storage\Memcached', get_class($manager->getContainer()));
-        
-        $job = new \Zend\Stdlib\CallbackHandler(array(new Job(), 'doSomething'));
-        $manager->doTheJob($job, 'value');
-        $manager->createChildren(2);
-        $manager->wait();
-        $results = $manager->getSharedResults();
-        $this->assertEquals('ok', $results->getChild(1)->getResult());
-        $this->assertEquals('ok', $results->getChild(2)->getResult());
     }
 }
