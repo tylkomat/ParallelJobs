@@ -110,12 +110,12 @@ class ForkManager
      * @var bool
      */
     protected $isStopped = false;
-    
+
     /**
-     * @var MemorySharedManager 
+     * @var MemorySharedManager
      */
     protected $memoryManager;
-    
+
     /**
      * Default results container
      * @var string
@@ -426,10 +426,10 @@ class ForkManager
     /**
      * Set the current storage (proxy by MemorySharedManager)
      * @param mixed $storage
-     * @return ForkManager 
+     * @return ForkManager
      */
     public function setStorage($storage)
-    {   
+    {
         $this->getMemoryManager()->setStorage($storage);
         return $this;
     }
@@ -525,10 +525,10 @@ class ForkManager
     {
         return $this->isStopped;
     }
-    
+
     /**
      * Get the memory manager
-     * @return MemorySharedManager 
+     * @return MemorySharedManager
      */
     public function getMemoryManager()
     {
@@ -538,11 +538,11 @@ class ForkManager
         }
         return $this->memoryManager;
     }
-    
+
     /**
      * Set the memory manager
      * @param MemorySharedManager $memoryManager
-     * @return MemorySharedManager 
+     * @return MemorySharedManager
      */
     public function setMemoryManager(MemorySharedManager $memoryManager)
     {
