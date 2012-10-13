@@ -42,7 +42,7 @@ class ManagerTest extends TestCase
         $this->sm->setAllowOverride(true);
         
         if(null !== DIR_SMS) {
-            $this->sms = $this->sm->get('SimpleMemoryShared');
+            $this->sms = $this->sm->get('MemorySharedManager');
         }
     }
     

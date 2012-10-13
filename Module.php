@@ -33,8 +33,8 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface,
                     $manager = new System\Fork\ForkManager();
                     $manager->setShareResult($config['share_result']);
                     $manager->setAutoStart($config['auto_start']);
-                    if($sm->has('SimpleMemoryShared')) {
-                        $sms = $sm->get('SimpleMemoryShared');
+                    if($sm->has('MemorySharedManager')) {
+                        $sms = $sm->get('MemorySharedManager');
                         $manager->setMemoryManager($sms);
                     }
                     return $manager;

@@ -9,7 +9,7 @@ namespace ParallelJobs\System\Fork;
 
 use ParallelJobs\System\Fork\Storage\Segment;
 use ParallelJobs\System\Fork\Storage\StorageInterface;
-use SimpleMemoryShared\SimpleMemoryShared;
+use SimpleMemoryShared\MemorySharedManager;
 use SimpleMemoryShared\Storage;
 use Zend\Stdlib\CallbackHandler;
 
@@ -112,7 +112,7 @@ class ForkManager
     protected $isStopped = false;
     
     /**
-     * @var SimpleMemoryShared 
+     * @var MemorySharedManager 
      */
     protected $memoryManager;
     
@@ -415,8 +415,8 @@ class ForkManager
     }
 
     /**
-     * Get the current storage (proxy by SimpleMemoryShared)
-     * @return SimpleMemoryShared
+     * Get the current storage (proxy by MemorySharedManager)
+     * @return Storage\StorageInterface
      */
     public function getStorage()
     {
@@ -424,7 +424,7 @@ class ForkManager
     }
 
     /**
-     * Set the current storage (proxy by SimpleMemoryShared)
+     * Set the current storage (proxy by MemorySharedManager)
      * @param mixed $storage
      * @return ForkManager 
      */
@@ -528,7 +528,7 @@ class ForkManager
     
     /**
      * Get the memory manager
-     * @return MemorySharedPluginManager 
+     * @return MemorySharedManager 
      */
     public function getMemoryManager()
     {
@@ -541,10 +541,10 @@ class ForkManager
     
     /**
      * Set the memory manager
-     * @param SimpleMemoryShared $memoryManager
-     * @return SimpleMemoryShared 
+     * @param MemorySharedManager $memoryManager
+     * @return MemorySharedManager 
      */
-    public function setMemoryManager(SimpleMemoryShared $memoryManager)
+    public function setMemoryManager(MemorySharedManager $memoryManager)
     {
         $this->memoryManager = $memoryManager;
         return $this;
