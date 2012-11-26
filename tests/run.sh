@@ -2,4 +2,4 @@
 
 clear
 rm -rf ../data/*
-phpunit --bootstrap Bootstrap.php ./ParallelJobs/
+phpunit --bootstrap bootstrap.php ./ParallelJobs/
