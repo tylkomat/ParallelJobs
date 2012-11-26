@@ -34,7 +34,7 @@ class JobInvalidObject
 class JobObjectString
 {
     private $attribute = 'nc';
-    
+
     public function __toString()
     {
         return $this->attribute;
