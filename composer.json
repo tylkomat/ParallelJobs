@@ -1,0 +1,13 @@
+{
+    "name": " blanchonvincent/ParallelJobs",
+    "description": "ZF2 module v1.5 - Fork Manager to manage parallel tasks - Use my SimpleMemoryShared to add features on this module",
+    "require": {
+        "php": ">=5.3.0",
+        "zendframework/zendframework": "2.*",
+    },
+    "autoload": {
+    	"psr-0": {
+    		"ParallelJobs": "src/"
+    	}
+    }
+}
